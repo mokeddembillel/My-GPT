@@ -10,12 +10,12 @@ from transformer_block import TransformerBlock
 
 class Transformer(nn.Module):
 
-    def __init__(self, sentence_length=5, imbd_size=512, hidden_size=64, attention_num_heads=8, ffnn_num_layers=3, ffnn_hidden_dim=1024, mask=False, num_blocks=3):
+    def __init__(self, sequence_length=5, imbd_size=512, hidden_size=64, attention_num_heads=8, ffnn_num_layers=3, ffnn_hidden_dim=1024, mask=False, num_blocks=3):
         super().__init__()
         
         self.imbd_size = imbd_size
         self.hidden_size = hidden_size
-        self.sentence_length = sentence_length
+        self.sequence_length = sequence_length
         self.attention_num_heads = attention_num_heads
         self.ffnn_num_layers = ffnn_num_layers
         self.ffnn_hidden_dim = ffnn_hidden_dim
@@ -24,7 +24,7 @@ class Transformer(nn.Module):
 
 
         self.t_blocks = [
-            TransformerBlock(self.sentence_length, self.imbd_size, self.hidden_size, 
+            TransformerBlock(self.sequence_length, self.imbd_size, self.hidden_size, 
                              self.attention_num_heads, self.ffnn_num_layers, 
                              self.ffnn_hidden_dim, self.mask) for _ in self.num_blocks
             ]
@@ -36,4 +36,10 @@ class Transformer(nn.Module):
         )
 
     def forward(self, X):
-        pass
+        X_t = X + get_timing_signal_1d(self.sequence_length, self.imbd_size) # (sequence_length, imbd_size)
+
+        r1 = self.t_blocks.forward(X_t) # (sequence_length, imbd_size)
+
+        probs = self.output_probs(r1) # (imbd_size, vocab_size)
+
+        return probs
