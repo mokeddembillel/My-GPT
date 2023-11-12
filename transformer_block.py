@@ -9,7 +9,7 @@ from utils import get_timing_signal_1d
 
 
 class TransformerBlock(nn.Module):
-    def __init__(self, sequence_length=5, imbd_size=512, hidden_size=64, attention_num_heads=8, ffnn_num_layers=3, ffnn_hidden_dim=1024, mask=False):
+    def __init__(self, batch_size=4, sequence_length=5, imbd_size=512, hidden_size=64, attention_num_heads=8, ffnn_num_layers=3, ffnn_hidden_dim=1024, mask=False):
         
         super().__init__()
 
@@ -20,9 +20,10 @@ class TransformerBlock(nn.Module):
         self.ffnn_num_layers = ffnn_num_layers
         self.ffnn_hidden_dim = ffnn_hidden_dim
         self.mask = mask
+        self.batch_size = batch_size
 
-
-        self.attention = MultiHeadAttention(sequence_length=self.sequence_length, 
+        self.attention = MultiHeadAttention(batch_size=self.batch_size,
+                                            sequence_length=self.sequence_length, 
                                             imbd_size=self.imbd_size, 
                                             hidden_size=self.hidden_size, 
                                             num_heads=self.attention_num_heads,
@@ -42,21 +43,16 @@ class TransformerBlock(nn.Module):
                 nn.Linear(self.ffnn_hidden_dim, self.imbd_size)
             )
 
-    def forward(self, X): # X-> (sequence_length, imbd_size)
-        r1 = self.attention.forward(X) # (sequence_length, imbd_size)
+    def forward(self, X): # X-> (batch_size, sequence_length, imbd_size)
+        r1 = self.attention.forward(X) # (batch_size, sequence_length, imbd_size)
 
-        r2 = self.norm1(X + r1) # (sequence_length, imbd_size)
+        r2 = self.norm1(X + r1) # (batch_size, sequence_length, imbd_size)
 
-        r3 = self.ffnn.forward(r2) # (sequence_length, imbd_size)
+        r3 = self.ffnn.forward(r2) # (batch_size, sequence_length, imbd_size)
 
-        r4 = self.norm1(r2 + r3) # (sequence_length, imbd_size)
+        r4 = self.norm1(r2 + r3) # (batch_size, sequence_length, imbd_size)
         return r4
 
-
-
-
-
-        
         
 if __name__ == "__main__":
     pass
