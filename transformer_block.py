@@ -9,38 +9,23 @@ from utils import get_timing_signal_1d
 
 
 class TransformerBlock(nn.Module):
-    def __init__(self, batch_size=4, sequence_length=5, imbd_size=512, hidden_size=64, attention_num_heads=8, ffnn_num_layers=3, ffnn_hidden_dim=1024, mask=False):
+    def __init__(self, imbd_size, hidden_size, attention_num_heads, ffnn_hidden_dim, mask, dropout, device):
         
         super().__init__()
 
-        self.imbd_size = imbd_size
-        self.hidden_size = hidden_size
-        self.sequence_length = sequence_length
-        self.attention_num_heads = attention_num_heads
-        self.ffnn_num_layers = ffnn_num_layers
-        self.ffnn_hidden_dim = ffnn_hidden_dim
-        self.mask = mask
-        self.batch_size = batch_size
-
-        self.attention = MultiHeadAttention(batch_size=self.batch_size,
-                                            sequence_length=self.sequence_length, 
-                                            imbd_size=self.imbd_size, 
-                                            hidden_size=self.hidden_size, 
-                                            num_heads=self.attention_num_heads,
-                                            mask=self.mask)
+        self.attention = MultiHeadAttention(imbd_size=imbd_size, 
+                                            hidden_size=hidden_size, 
+                                            num_heads=attention_num_heads,
+                                            mask=mask, dropout=dropout, device=device)
         
-        self.norm1 = nn.LayerNorm(self.imbd_size)
-        self.norm2 = nn.LayerNorm(self.imbd_size)
-        self.norm3 = nn.LayerNorm(self.imbd_size)
-
-
+        self.norm1 = nn.LayerNorm(imbd_size)
+        self.norm2 = nn.LayerNorm(imbd_size)
 
         self.ffnn = nn.Sequential( 
-                nn.Linear(self.imbd_size, self.ffnn_hidden_dim),
+                nn.Linear(imbd_size, ffnn_hidden_dim),
                 nn.ReLU(),
-                nn.Linear(self.ffnn_hidden_dim, self.ffnn_hidden_dim),
-                nn.ReLU(),
-                nn.Linear(self.ffnn_hidden_dim, self.imbd_size)
+                nn.Linear(ffnn_hidden_dim, imbd_size),
+                nn.Dropout(dropout)
             )
 
     def forward(self, X): # X-> (batch_size, sequence_length, imbd_size)
