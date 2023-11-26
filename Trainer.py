@@ -20,7 +20,7 @@ eval_iter = 200
 eval_interval = 500
 
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
-torch.manual_seed(1337)
+torch.manual_seed(0)
 
 # Load and preprocess the data
 with open('data/input.txt', 'r', encoding='utf-8') as f:

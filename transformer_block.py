@@ -5,7 +5,6 @@ import pickle
 import math
 import torch.nn as nn
 from multi_head_attention import MultiHeadAttention
-from utils import get_timing_signal_1d
 
 
 class TransformerBlock(nn.Module):
